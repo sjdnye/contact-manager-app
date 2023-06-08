@@ -4,7 +4,6 @@ import Contact from "./Contact";
 import Spinner from "../Spinner";
 
 const Contacts = ({contacts, loading}) => {
-
     return (
         <>
             <section className="container mt-2">
