@@ -39,16 +39,12 @@ const Contacts = ({contacts, loading}) => {
                                             <img src={require("../../assets/no-found.gif")} alt="not found"
                                                  className="w-25 img-fluid"/>
                                         </div>
-
                                     )
-
-
                             }
                         </div>
                     </section>
                 )
             }
-
         </>
     )
 }
