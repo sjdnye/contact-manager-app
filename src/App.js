@@ -1,5 +1,6 @@
 import './App.css';
 import {COMMENT, CURRENTLINE, FOREGROUND, PURPLE, YELLOW} from "./helpers/colors";
+import {contactSchema} from "./validations/contactValidation"
 import {Navbar, Contacts, AddContact, EditContact, ViewContact, Contact} from "./components";
 import {createContact, getAllContacts, getAllGroups, deleteContact, updateContact} from "./services/contactService"
 import {ContactContext} from "./context/contactContext";
@@ -7,6 +8,7 @@ import {ContactContext} from "./context/contactContext";
 import {useState, useEffect} from "react";
 import {Routes, Route, useNavigate, Navigate} from 'react-router-dom'
 import {confirmAlert} from 'react-confirm-alert'
+import _ from 'lodash'
 
 const App = () => {
     const [loading, setLoading] = useState(false);
@@ -14,6 +16,7 @@ const App = () => {
     const [filteredContacts, setFilteredContacts] = useState([]);
     const [groups, setGroups] = useState([]);
     const [contact, setContact] = useState({})
+    const [errors, setErrors]  =useState([])
 
     const navigate = useNavigate();
 
@@ -49,9 +52,14 @@ const App = () => {
         event.preventDefault();
         try {
             setLoading((prevLoading) => !prevLoading)
+
+            await contactSchema.validate(contact, {
+                abortEarly: false
+            })
             const {status, data} = await createContact(contact)
             if (status === 201) {
                 setContact({});
+                setErrors([]);
                 const allContacts = [...contacts, data]
                 setContacts(allContacts);
                 setFilteredContacts(allContacts)
@@ -59,8 +67,10 @@ const App = () => {
                 navigate("/contacts")
             }
         } catch (e) {
-            console.log(e.message())
-            setLoading((prevLoading) => !prevLoading)
+            console.log(e.message);
+            console.log(e.inner);
+            setErrors(e.inner);
+            setLoading((prevLoading) => !prevLoading);
         }
     }
 
@@ -86,13 +96,13 @@ const App = () => {
         }
     }
 
-    let filterTimeout;
-    const contactSearch = (query) => {
+    // let filterTimeout;
+    const contactSearch = _.debounce((query) => {
         try {
-            clearTimeout(filterTimeout);
+            // clearTimeout(filterTimeout);
             if(!query) return setFilteredContacts(([...contacts]))
 
-            filterTimeout = setTimeout(() => {
+            // filterTimeout = setTimeout(() => {
                 setFilteredContacts(
                     contacts.filter(c => {
                             return c.fullname
@@ -102,13 +112,13 @@ const App = () => {
                         }
                     )
                 )
-            }, 1000)
+            // }, 1000)
 
 
         } catch (e) {
             console.log(e)
         }
-    }
+    }, 1000)
     const confirmDelete = (contactId, contactFullname) => {
         confirmAlert({
             customUI: ({onClose}) => {
@@ -160,6 +170,7 @@ const App = () => {
             filteredContacts: filteredContacts,
             setFilteredContacts: setFilteredContacts,
             groups: groups,
+            errors: errors,
             onContactChange: onContactChange,
             deleteContact: confirmDelete,
             createContact: createContactForm,
