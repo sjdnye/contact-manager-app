@@ -7,6 +7,8 @@ import {
 } from "../../services/contactService";
 import {Spinner} from "../";
 import {COMMENT, ORANGE, PURPLE} from "../../helpers/colors";
+import {ErrorMessage, Field, Form, Formik} from "formik";
+import {contactSchema} from "../../validations/contactValidation";
 
 const EditContact = () => {
     const {contactId} = useParams();
@@ -29,33 +31,14 @@ const EditContact = () => {
         fetchData();
     }, []);
 
-    const onContactChange = (event) => {
-        setContact({
-            ...contact,
-            [event.target.name]: event.target.value,
-        });
-    };
 
-    const submitForm = async (event) => {
-        event.preventDefault();
+    const submitForm = async (values) => {
         try {
             setLoading(true)
-            const {data, status} = await updateContact(contact, contactId);
+            const {data, status} = await updateContact(values, contactId);
 
             if (status === 200) {
                 setLoading(false)
-
-                // let allContacts = [...contacts];
-                // // let prevContact = allContacts.find(c => c.id === parseInt(contactId))
-                // allContacts = allContacts.map((c) => {
-                //     if (c.id === parseInt(contactId)) {
-                //        return data
-                //     }else{
-                //         return c
-                //     }
-                // })
-
-                //OR
 
                 const allContacts = [...contacts];
                 const contactIndex = allContacts.findIndex(c => c.id === parseInt(contactId))
@@ -94,95 +77,109 @@ const EditContact = () => {
                                 style={{backgroundColor: "#44475a", borderRadius: "1em"}}
                             >
                                 <div className="col-md-8">
-                                    <form onSubmit={submitForm}>
-                                        <div className="mb-2">
-                                            <input
-                                                name="fullname"
-                                                type="text"
-                                                className="form-control"
-                                                value={contact.fullname}
-                                                onChange={onContactChange}
-                                                required={true}
-                                                placeholder="نام و نام خانوادگی"
-                                            />
-                                        </div>
-                                        <div className="mb-2">
-                                            <input
-                                                name="photo"
-                                                type="text"
-                                                value={contact.photo}
-                                                onChange={onContactChange}
-                                                className="form-control"
-                                                required={true}
-                                                placeholder="آدرس تصویر"
-                                            />
-                                        </div>
-                                        <div className="mb-2">
-                                            <input
-                                                name="mobile"
-                                                type="number"
-                                                className="form-control"
-                                                value={contact.mobile}
-                                                onChange={onContactChange}
-                                                required={true}
-                                                placeholder="شماره موبایل"
-                                            />
-                                        </div>
-                                        <div className="mb-2">
-                                            <input
-                                                name="email"
-                                                type="email"
-                                                className="form-control"
-                                                value={contact.email}
-                                                onChange={onContactChange}
-                                                required={true}
-                                                placeholder="آدرس ایمیل"
-                                            />
-                                        </div>
-                                        <div className="mb-2">
-                                            <input
-                                                name="job"
-                                                type="text"
-                                                className="form-control"
-                                                value={contact.job}
-                                                onChange={onContactChange}
-                                                required={true}
-                                                placeholder="شغل"
-                                            />
-                                        </div>
-                                        <div className="mb-2">
-                                            <select
-                                                name="group"
-                                                value={contact.group}
-                                                onChange={onContactChange}
-                                                required={true}
-                                                className="form-control"
-                                            >
-                                                <option value="">انتخاب گروه</option>
-                                                {groups.length > 0 &&
-                                                    groups.map((group) => (
-                                                        <option key={group.id} value={group.id}>
-                                                            {group.name}
-                                                        </option>
-                                                    ))}
-                                            </select>
-                                        </div>
-                                        <div className="mb-2">
-                                            <input
-                                                type="submit"
-                                                className="btn"
-                                                style={{backgroundColor: PURPLE}}
-                                                value="ویرایش مخاطب"
-                                            />
-                                            <Link
-                                                to={"/contacts"}
-                                                className="btn mx-2"
-                                                style={{backgroundColor: COMMENT}}
-                                            >
-                                                انصراف
-                                            </Link>
-                                        </div>
-                                    </form>
+                                    <Formik
+                                        initialValues={contact}
+                                        validationSchema={contactSchema}
+                                        onSubmit={(values) => {
+                                            submitForm(values)
+                                        }}
+                                    >
+                                        <Form>
+                                            <div className="mb-2">
+                                                <Field
+                                                    name="fullname"
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="نام و نام خانوادگی"
+                                                />
+                                                <ErrorMessage name="fullname"
+                                                              render={msg =>
+                                                                  <div className="text-danger">
+                                                                      {msg}
+                                                                  </div>}
+                                                />
+                                            </div>
+                                            <div className="mb-2">
+                                                <Field
+                                                    name="photo"
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="آدرس تصویر"
+                                                />
+                                                <ErrorMessage name="photo"
+                                                              render={msg => <div className="text-danger">
+                                                    {msg}
+                                                </div>}/>
+
+                                            </div>
+                                            <div className="mb-2">
+                                                <Field
+                                                    name="mobile"
+                                                    type="number"
+                                                    className="form-control"
+                                                    placeholder="شماره موبایل"
+                                                />
+                                                <ErrorMessage name="mobile" render={msg => <div className="text-danger">
+                                                    {msg}
+                                                </div>}/>
+                                            </div>
+                                            <div className="mb-2">
+                                                <Field
+                                                    name="email"
+                                                    type="email"
+                                                    className="form-control"
+                                                    placeholder="آدرس ایمیل"
+                                                />
+                                                <ErrorMessage name="email" render={msg => <div className="text-danger">
+                                                    {msg}
+                                                </div>}/>
+                                            </div>
+                                            <div className="mb-2">
+                                                <Field
+                                                    name="job"
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="شغل"
+                                                />
+                                                <ErrorMessage name="job" render={msg => <div className="text-danger">
+                                                    {msg}
+                                                </div>}/>
+                                            </div>
+                                            <div className="mb-2">
+                                                <Field
+                                                    name="group"
+                                                    as="select"
+                                                    className="form-control"
+                                                >
+                                                    <option value="">انتخاب گروه</option>
+                                                    {groups.length > 0 &&
+                                                        groups.map((group) => (
+                                                            <option key={group.id} value={group.id}>
+                                                                {group.name}
+                                                            </option>
+                                                        ))}
+                                                </Field>
+                                                <ErrorMessage name="group" render={msg => <div className="text-danger">
+                                                    {msg}
+                                                </div>}/>
+                                            </div>
+                                            <div className="mx-2">
+                                                <input
+                                                    type="submit"
+                                                    className="btn"
+                                                    style={{backgroundColor: PURPLE}}
+                                                    value="ویرایش مخاطب"
+                                                />
+                                                <Link
+                                                    to={"/contacts"}
+                                                    className="btn mx-2"
+                                                    style={{backgroundColor: COMMENT}}
+                                                >
+                                                    انصراف
+                                                </Link>
+                                            </div>
+                                        </Form>
+                                    </Formik>
                                 </div>
                                 <div className="col-md-4">
                                     <img

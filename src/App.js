@@ -15,8 +15,8 @@ const App = () => {
     const [contacts, setContacts] = useState([]);
     const [filteredContacts, setFilteredContacts] = useState([]);
     const [groups, setGroups] = useState([]);
-    const [contact, setContact] = useState({})
-    const [errors, setErrors]  =useState([])
+    const [contact, setContact] = useState({});
+    // const [errors, setErrors]  =useState([]);
 
     const navigate = useNavigate();
 
@@ -48,18 +48,17 @@ const App = () => {
         setContact({...contact, [event.target.name]: event.target.value})
     }
 
-    const createContactForm = async (event) => {
-        event.preventDefault();
+    const createContactForm = async (values) => {
         try {
             setLoading((prevLoading) => !prevLoading)
 
-            await contactSchema.validate(contact, {
-                abortEarly: false
-            })
-            const {status, data} = await createContact(contact)
+            // await contactSchema.validate(contact, {
+            //     abortEarly: false
+            // })
+            const {status, data} = await createContact(values)
             if (status === 201) {
-                setContact({});
-                setErrors([]);
+                // setContact({});
+                // setErrors([]);
                 const allContacts = [...contacts, data]
                 setContacts(allContacts);
                 setFilteredContacts(allContacts)
@@ -68,8 +67,8 @@ const App = () => {
             }
         } catch (e) {
             console.log(e.message);
-            console.log(e.inner);
-            setErrors(e.inner);
+            // console.log(e.inner);
+            // setErrors(e.inner);
             setLoading((prevLoading) => !prevLoading);
         }
     }
@@ -170,7 +169,7 @@ const App = () => {
             filteredContacts: filteredContacts,
             setFilteredContacts: setFilteredContacts,
             groups: groups,
-            errors: errors,
+            // errors: errors,
             onContactChange: onContactChange,
             deleteContact: confirmDelete,
             createContact: createContactForm,
