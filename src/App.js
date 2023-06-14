@@ -12,7 +12,6 @@ const App = () => {
     const [loading, setLoading] = useState(false);
     const [contacts, setContacts] = useState([]);
     const [filteredContacts, setFilteredContacts] = useState([]);
-    const [contactQuery, setContactQuery] = useState({text: ""});
     const [groups, setGroups] = useState([]);
     const [contact, setContact] = useState({})
 
@@ -65,6 +64,51 @@ const App = () => {
         }
     }
 
+
+    const removeContact = async (contactId) => {
+        const prevAllContacts = [...contacts]
+        const newContactsList = contacts.filter(c => c.id !== parseInt(contactId))
+        try {
+            setLoading(true);
+            setContacts(newContactsList)
+            setFilteredContacts(newContactsList)
+            const {status} = await deleteContact(contactId);
+            if (status !== 200) {
+                setContact(prevAllContacts)
+                setFilteredContacts(prevAllContacts)
+            }
+            setLoading(false)
+        } catch (e) {
+            console.log(e.message())
+            setContact(prevAllContacts)
+            setFilteredContacts(prevAllContacts)
+            setLoading(false)
+        }
+    }
+
+    let filterTimeout;
+    const contactSearch = (query) => {
+        try {
+            clearTimeout(filterTimeout);
+            if(!query) return setFilteredContacts(([...contacts]))
+
+            filterTimeout = setTimeout(() => {
+                setFilteredContacts(
+                    contacts.filter(c => {
+                            return c.fullname
+                                .toString()
+                                .toLowerCase()
+                                .includes(query.toLowerCase());
+                        }
+                    )
+                )
+            }, 1000)
+
+
+        } catch (e) {
+            console.log(e)
+        }
+    }
     const confirmDelete = (contactId, contactFullname) => {
         confirmAlert({
             customUI: ({onClose}) => {
@@ -105,43 +149,6 @@ const App = () => {
         });
     };
 
-
-    const removeContact = async (contactId) => {
-        const prevAllContacts = [...contacts]
-        const newContactsList = contacts.filter(c => c.id !== parseInt(contactId))
-        try {
-            setLoading(true);
-            setContacts(newContactsList)
-            setFilteredContacts(newContactsList)
-            const {status} = await deleteContact(contactId);
-            if (status !== 200) {
-                setContact(prevAllContacts)
-                setFilteredContacts(prevAllContacts)
-            }
-            setLoading(false)
-        } catch (e) {
-            console.log(e.message())
-            setContact(prevAllContacts)
-            setFilteredContacts(prevAllContacts)
-            setLoading(false)
-        }
-    }
-
-    const contactSearch = (event) => {
-        try {
-            setContactQuery({...contactQuery, text: event.target.value});
-            const allContacts = contacts.filter(c => {
-                return c.fullname
-                    .toString()
-                    .toLowerCase()
-                    .includes(event.target.value.toLowerCase());
-            });
-            setFilteredContacts(allContacts);
-        } catch (e) {
-            console.log(e)
-        }
-    }
-
     return (
         <ContactContext.Provider value={{
             loading: loading,
@@ -152,7 +159,6 @@ const App = () => {
             setContacts: setContacts,
             filteredContacts: filteredContacts,
             setFilteredContacts: setFilteredContacts,
-            contactQuery: contactQuery,
             groups: groups,
             onContactChange: onContactChange,
             deleteContact: confirmDelete,
