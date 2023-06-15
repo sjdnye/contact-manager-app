@@ -9,13 +9,14 @@ import {useState, useEffect} from "react";
 import {Routes, Route, useNavigate, Navigate} from 'react-router-dom'
 import {confirmAlert} from 'react-confirm-alert'
 import _ from 'lodash'
+import {useImmer} from 'use-immer'
+import {ToastContainer, toast} from 'react-toastify'
 
 const App = () => {
-    const [loading, setLoading] = useState(false);
-    const [contacts, setContacts] = useState([]);
-    const [filteredContacts, setFilteredContacts] = useState([]);
-    const [groups, setGroups] = useState([]);
-    const [contact, setContact] = useState({});
+    const [loading, setLoading] = useImmer(false);
+    const [contacts, setContacts] = useImmer([]);
+    const [filteredContacts, setFilteredContacts] = useImmer([]);
+    const [groups, setGroups] = useImmer([]);
     // const [errors, setErrors]  =useState([]);
 
     const navigate = useNavigate();
@@ -44,52 +45,72 @@ const App = () => {
         fetchData();
     }
 
-    const onContactChange = (event) => {
-        setContact({...contact, [event.target.name]: event.target.value})
-    }
-
     const createContactForm = async (values) => {
         try {
-            setLoading((prevLoading) => !prevLoading)
+            // setLoading((prevLoading) => !prevLoading)
+
+            //Immer approach
+            setLoading(draft => !draft)
 
             // await contactSchema.validate(contact, {
             //     abortEarly: false
             // })
             const {status, data} = await createContact(values)
             if (status === 201) {
-                // setContact({});
-                // setErrors([]);
-                const allContacts = [...contacts, data]
-                setContacts(allContacts);
-                setFilteredContacts(allContacts)
-                setLoading((prevLoading) => !prevLoading)
+                toast.dark("contact added successfully");
+                // const allContacts = [...contacts, data]
+                // setContacts(allContacts);
+                // setFilteredContacts(allContacts)
+
+                //Immer approach
+                setContacts(draft => {
+                    draft.push(data)
+                })
+                setFilteredContacts(draft => {
+                    draft.push(data)
+                })
+
+                // setLoading((prevLoading) => !prevLoading)
+                //Immer approach
+                setLoading(draft => !draft)
                 navigate("/contacts")
             }
         } catch (e) {
             console.log(e.message);
             // console.log(e.inner);
             // setErrors(e.inner);
-            setLoading((prevLoading) => !prevLoading);
+            // setLoading((prevLoading) => !prevLoading);
+
+            //Immer approach
+            setLoading(draft => !draft)
         }
     }
 
 
     const removeContact = async (contactId) => {
         const prevAllContacts = [...contacts]
-        const newContactsList = contacts.filter(c => c.id !== parseInt(contactId))
+        // const newContactsList = contacts.filter(c => c.id !== parseInt(contactId))
         try {
             setLoading(true);
-            setContacts(newContactsList)
-            setFilteredContacts(newContactsList)
+            // setContacts(newContactsList)
+            // setFilteredContacts(newContactsList)
+
+            setContacts(draft => draft.filter(c => c.id !== parseInt(contactId))
+            )
+            setFilteredContacts(draft => draft.filter(c => c.id !== parseInt(contactId))
+            )
+
             const {status} = await deleteContact(contactId);
             if (status !== 200) {
-                setContact(prevAllContacts)
+                toast.error("something went wrong!!")
+                setContacts(prevAllContacts)
                 setFilteredContacts(prevAllContacts)
             }
             setLoading(false)
+            toast.dark("contact has been remove successfully")
         } catch (e) {
             console.log(e.message())
-            setContact(prevAllContacts)
+            setContacts(prevAllContacts)
             setFilteredContacts(prevAllContacts)
             setLoading(false)
         }
@@ -99,21 +120,18 @@ const App = () => {
     const contactSearch = _.debounce((query) => {
         try {
             // clearTimeout(filterTimeout);
-            if(!query) return setFilteredContacts(([...contacts]))
+            if (!query) return setFilteredContacts(([...contacts]))
 
             // filterTimeout = setTimeout(() => {
-                setFilteredContacts(
-                    contacts.filter(c => {
-                            return c.fullname
-                                .toString()
-                                .toLowerCase()
-                                .includes(query.toLowerCase());
-                        }
-                    )
+            setFilteredContacts(draft =>
+                draft.filter(c =>
+                    c.fullname
+                        .toString()
+                        .toLowerCase()
+                        .includes(query.toLowerCase())
                 )
+            )
             // }, 1000)
-
-
         } catch (e) {
             console.log(e)
         }
@@ -162,20 +180,22 @@ const App = () => {
         <ContactContext.Provider value={{
             loading: loading,
             setLoading: setLoading,
-            contact: contact,
-            setContact: setContact,
             contacts: contacts,
             setContacts: setContacts,
             filteredContacts: filteredContacts,
             setFilteredContacts: setFilteredContacts,
             groups: groups,
             // errors: errors,
-            onContactChange: onContactChange,
             deleteContact: confirmDelete,
             createContact: createContactForm,
             contactSearch: contactSearch
         }}>
             <div className="App">
+                <ToastContainer
+                    rtl={true}
+                    position="top-right"
+                    theme="dark"
+                />
                 <Navbar/>
                 <Routes>
                     <Route path="/" element={<Navigate to="/contacts"/>}/>

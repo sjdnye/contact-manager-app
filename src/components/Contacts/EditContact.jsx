@@ -1,5 +1,8 @@
 import {useEffect, useState, useContext} from "react";
 import {Link, useNavigate, useParams} from "react-router-dom";
+import {useImmer} from "use-immer";
+import {toast} from "react-toastify";
+
 import {ContactContext} from "../../context/contactContext";
 import {
     getContact,
@@ -13,8 +16,8 @@ import {contactSchema} from "../../validations/contactValidation";
 const EditContact = () => {
     const {contactId} = useParams();
     const navigate = useNavigate();
-    const {groups, loading, setLoading, contacts, setContacts, setFilteredContacts} = useContext(ContactContext)
-    const [contact, setContact] = useState({});
+    const {groups, loading, setLoading, setContacts, setFilteredContacts} = useContext(ContactContext)
+    const [contact, setContact] = useImmer({});
 
     useEffect(() => {
         const fetchData = async () => {
@@ -40,14 +43,21 @@ const EditContact = () => {
             if (status === 200) {
                 setLoading(false)
 
-                const allContacts = [...contacts];
-                const contactIndex = allContacts.findIndex(c => c.id === parseInt(contactId))
-                allContacts[contactIndex] = {...data}
+                // const allContacts = [...contacts];
+                // const contactIndex = allContacts.findIndex(c => c.id === parseInt(contactId))
+                // allContacts[contactIndex] = {...data}
+                // setContacts(allContacts)
+                // setFilteredContacts(allContacts)
 
-                //---------------------------------------
-
-                setContacts(allContacts)
-                setFilteredContacts(allContacts)
+                setContacts(draft => {
+                    const contactIndex = draft.findIndex(c => c.id === parseInt(contactId))
+                    draft[contactIndex] = {...data}
+                })
+                setFilteredContacts(draft => {
+                    const contactIndex = draft.findIndex(c => c.id === parseInt(contactId))
+                    draft[contactIndex] = {...data}
+                })
+                toast.dark("contact has been changed successfully")
                 navigate("/contacts");
             }
         } catch (err) {

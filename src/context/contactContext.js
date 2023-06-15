@@ -4,9 +4,6 @@ export const ContactContext = createContext({
     loading: false,
     setLoading: () => {
     },
-    contact: {},
-    setContact: () => {
-    },
     contacts: [],
     setContacts: () => {
     },
@@ -15,8 +12,6 @@ export const ContactContext = createContext({
     },
     groups: [],
     // errors: [],
-    onContactChange: () => {
-    },
     createContact: () => {
     },
     contactSearch: () => {

@@ -64,9 +64,8 @@ const AddContact = () => {
                                                     className="form-control"
                                                     placeholder="نام و نام خانوادگی"
                                                 />
-                                                <ErrorMessage name="fullname" render={msg => <div className="text-danger">
-                                                                  {msg}
-                                                              </div>}
+                                                <ErrorMessage name="fullname" render={
+                                                    msg => <div className="text-danger">{msg}</div>}
                                                 />
                                             </div>
                                             <div className="mb-2">
